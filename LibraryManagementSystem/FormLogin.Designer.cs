@@ -32,7 +32,7 @@
             tbPassword = new TextBox();
             usernameLabel = new Label();
             passwordLabel = new Label();
-            btnRegister = new Button();
+            btnLogin = new Button();
             panel1 = new Panel();
             welcomeLabel = new Label();
             panel1.SuspendLayout();
@@ -41,6 +41,7 @@
             // tbUsername
             // 
             tbUsername.BackColor = Color.OldLace;
+            tbUsername.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tbUsername.Location = new Point(134, 160);
             tbUsername.Multiline = true;
             tbUsername.Name = "tbUsername";
@@ -50,11 +51,11 @@
             // tbPassword
             // 
             tbPassword.BackColor = Color.OldLace;
+            tbPassword.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tbPassword.Location = new Point(134, 241);
-            tbPassword.Multiline = true;
             tbPassword.Name = "tbPassword";
             tbPassword.PasswordChar = '*';
-            tbPassword.Size = new Size(274, 40);
+            tbPassword.Size = new Size(274, 31);
             tbPassword.TabIndex = 1;
             tbPassword.UseSystemPasswordChar = true;
             // 
@@ -80,29 +81,29 @@
             passwordLabel.TabIndex = 3;
             passwordLabel.Text = "Password";
             // 
-            // btnRegister
+            // btnLogin
             // 
-            btnRegister.BackColor = Color.Bisque;
-            btnRegister.Font = new Font("Arial Rounded MT Bold", 16.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btnRegister.ForeColor = Color.Sienna;
-            btnRegister.Location = new Point(191, 306);
-            btnRegister.Name = "btnRegister";
-            btnRegister.Size = new Size(162, 55);
-            btnRegister.TabIndex = 4;
-            btnRegister.Text = "Login";
-            btnRegister.UseVisualStyleBackColor = false;
-            btnRegister.Click += btnRegister_Click;
+            btnLogin.BackColor = Color.Bisque;
+            btnLogin.Font = new Font("Arial Rounded MT Bold", 16.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnLogin.ForeColor = Color.Sienna;
+            btnLogin.Location = new Point(191, 306);
+            btnLogin.Name = "btnLogin";
+            btnLogin.Size = new Size(162, 55);
+            btnLogin.TabIndex = 4;
+            btnLogin.Text = "Login";
+            btnLogin.UseVisualStyleBackColor = false;
+            btnLogin.Click += btnLogin_Click;
             // 
             // panel1
             // 
             panel1.BackColor = Color.AntiqueWhite;
             panel1.Controls.Add(welcomeLabel);
-            panel1.Controls.Add(btnRegister);
+            panel1.Controls.Add(btnLogin);
             panel1.Controls.Add(passwordLabel);
             panel1.Controls.Add(usernameLabel);
             panel1.Controls.Add(tbPassword);
             panel1.Controls.Add(tbUsername);
-            panel1.Location = new Point(307, 93);
+            panel1.Location = new Point(293, 122);
             panel1.Name = "panel1";
             panel1.Size = new Size(533, 466);
             panel1.TabIndex = 5;
@@ -123,7 +124,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = Properties.Resources.BG_LOGIN_1;
-            ClientSize = new Size(1155, 643);
+            ClientSize = new Size(1120, 679);
             Controls.Add(panel1);
             Name = "FormLogin";
             Text = "FormLogin";
@@ -138,7 +139,7 @@
         private TextBox tbPassword;
         private Label usernameLabel;
         private Label passwordLabel;
-        private Button btnRegister;
+        private Button btnLogin;
         private Panel panel1;
         private Label welcomeLabel;
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -53,19 +54,65 @@ namespace LibraryManagementSystem
             }
         }
 
- 
 
 
 
 
-        private void btnRegister_Click(object sender, EventArgs e)
+
+        //private void btnLogin_Click(object sender, EventArgs e)
+        //{
+        //    this.DialogResult = DialogResult.OK; // Signal that login was successful
+        //}
+
+        private void btnLogin_Click(object sender, EventArgs e)
         {
+            string username = tbUsername.Text.Trim();
+            string password = tbPassword.Text;
 
-            //FormMain fr = new FormMain();
-            //fr.Show();
-            //this.Hide();
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Please enter both username and password.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-            this.DialogResult = DialogResult.OK; // Signal that login was successful
+            using (SqlConnection conn = new SqlConnection(@"Server=.\SQLEXPRESS;Database=LibraryDB;Integrated Security=True;TrustServerCertificate=True;"))
+            {
+                string query = "SELECT UserID, PasswordHash FROM Librarians WHERE Username = @Username AND IsActive = 1";
+                try
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Username", username);
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                long userId = reader.GetInt64(0);
+                                string storedHash = reader.GetString(1);
+
+                                if (BCrypt.Net.BCrypt.Verify(password, storedHash))
+                                {
+                                    // Store the user session info
+                                    Session.LoggedInUserID = userId;
+                                    Session.Username = username;
+
+                                    this.DialogResult = DialogResult.OK; // success
+                                    return;
+                                }
+                            }
+                        }
+
+                        MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error during login: " + ex.Message);
+                }
+            }
         }
+
     }
 }

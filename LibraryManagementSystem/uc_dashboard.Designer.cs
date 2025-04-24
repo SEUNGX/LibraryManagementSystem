@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             totalBooksPanel = new Panel();
+            totalBooksNumLabel = new Label();
             totalBooksLabel = new Label();
             currentLoansPanel = new Panel();
             totalMembersPanel = new Panel();
-            totalBooksNumLabel = new Label();
             totalBooksPanel.SuspendLayout();
             SuspendLayout();
             // 
@@ -45,6 +45,16 @@
             totalBooksPanel.Name = "totalBooksPanel";
             totalBooksPanel.Size = new Size(213, 191);
             totalBooksPanel.TabIndex = 11;
+            // 
+            // totalBooksNumLabel
+            // 
+            totalBooksNumLabel.AutoSize = true;
+            totalBooksNumLabel.Font = new Font("Arial Rounded MT Bold", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            totalBooksNumLabel.Location = new Point(88, 60);
+            totalBooksNumLabel.Name = "totalBooksNumLabel";
+            totalBooksNumLabel.Size = new Size(20, 27);
+            totalBooksNumLabel.TabIndex = 1;
+            totalBooksNumLabel.Text = "-";
             // 
             // totalBooksLabel
             // 
@@ -72,16 +82,6 @@
             totalMembersPanel.Size = new Size(213, 191);
             totalMembersPanel.TabIndex = 13;
             // 
-            // totalBooksNumLabel
-            // 
-            totalBooksNumLabel.AutoSize = true;
-            totalBooksNumLabel.Font = new Font("Arial Rounded MT Bold", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            totalBooksNumLabel.Location = new Point(88, 60);
-            totalBooksNumLabel.Name = "totalBooksNumLabel";
-            totalBooksNumLabel.Size = new Size(26, 27);
-            totalBooksNumLabel.TabIndex = 1;
-            totalBooksNumLabel.Text = "0";
-            // 
             // uc_dashboard
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -94,6 +94,9 @@
             totalBooksPanel.ResumeLayout(false);
             totalBooksPanel.PerformLayout();
             ResumeLayout(false);
+            //totalBooksPanel.ResumeLayout(false);
+            //totalBooksPanel.PerformLayout();
+            //ResumeLayout(false);
         }
 
         #endregion

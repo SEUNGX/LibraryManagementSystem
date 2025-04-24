@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace LibraryManagementSystem
 {
-    public partial class uc_dashboard: UserControl
+    public partial class uc_dashboard : UserControl
     {
         public uc_dashboard()
         {
@@ -25,6 +25,9 @@ namespace LibraryManagementSystem
 
 
         }
+
+
+
 
     }
 }

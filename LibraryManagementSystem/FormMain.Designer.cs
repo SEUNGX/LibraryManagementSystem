@@ -30,10 +30,9 @@
         {
             components = new System.ComponentModel.Container();
             panel2 = new Panel();
-            mainPanel = new Panel();
-            hamBtnf = new PictureBox();
             hamBtn = new Button();
             LibrarianLabel = new Label();
+            mainPanel = new Panel();
             sidebar = new FlowLayoutPanel();
             dashboardBtn = new Button();
             booksBtn = new Button();
@@ -45,15 +44,14 @@
             librariansButton = new Button();
             logoutBtn = new Button();
             sidebarTransition = new System.Windows.Forms.Timer(components);
+            dailyTimer = new System.Windows.Forms.Timer(components);
             panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)hamBtnf).BeginInit();
             sidebar.SuspendLayout();
             SuspendLayout();
             // 
             // panel2
             // 
             panel2.BackColor = Color.Tan;
-            panel2.Controls.Add(hamBtnf);
             panel2.Controls.Add(hamBtn);
             panel2.Controls.Add(LibrarianLabel);
             panel2.Dock = DockStyle.Top;
@@ -61,21 +59,6 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(1269, 44);
             panel2.TabIndex = 7;
-            // 
-            // mainPanel
-            // 
-            mainPanel.Location = new Point(255, 50);
-            mainPanel.Name = "mainPanel";
-            mainPanel.Size = new Size(1013, 542);
-            mainPanel.TabIndex = 9;
-            // 
-            // hamBtnf
-            // 
-            hamBtnf.Location = new Point(368, 6);
-            hamBtnf.Name = "hamBtnf";
-            hamBtnf.Size = new Size(100, 50);
-            hamBtnf.TabIndex = 0;
-            hamBtnf.TabStop = false;
             // 
             // hamBtn
             // 
@@ -98,6 +81,13 @@
             LibrarianLabel.TabIndex = 7;
             LibrarianLabel.Text = "Hello, Librarian!";
             // 
+            // mainPanel
+            // 
+            mainPanel.Location = new Point(255, 50);
+            mainPanel.Name = "mainPanel";
+            mainPanel.Size = new Size(1013, 542);
+            mainPanel.TabIndex = 9;
+            // 
             // sidebar
             // 
             sidebar.BackColor = Color.Tan;
@@ -113,7 +103,7 @@
             sidebar.Dock = DockStyle.Left;
             sidebar.Location = new Point(0, 44);
             sidebar.Name = "sidebar";
-            sidebar.Size = new Size(250, 542);
+            sidebar.Size = new Size(250, 557);
             sidebar.TabIndex = 8;
             // 
             // dashboardBtn
@@ -146,6 +136,7 @@
             booksBtn.Text = "          Books";
             booksBtn.TextAlign = ContentAlignment.MiddleLeft;
             booksBtn.UseVisualStyleBackColor = false;
+            booksBtn.Click += booksBtn_Click;
             // 
             // finesBtn
             // 
@@ -161,6 +152,7 @@
             finesBtn.Text = "          Fines";
             finesBtn.TextAlign = ContentAlignment.MiddleLeft;
             finesBtn.UseVisualStyleBackColor = false;
+            finesBtn.Click += finesBtn_Click;
             // 
             // loansBtn
             // 
@@ -176,6 +168,7 @@
             loansBtn.Text = "          Loans";
             loansBtn.TextAlign = ContentAlignment.MiddleLeft;
             loansBtn.UseVisualStyleBackColor = false;
+            loansBtn.Click += loansBtn_Click;
             // 
             // membersBtn
             // 
@@ -191,6 +184,7 @@
             membersBtn.Text = "          Members";
             membersBtn.TextAlign = ContentAlignment.MiddleLeft;
             membersBtn.UseVisualStyleBackColor = false;
+            membersBtn.Click += membersBtn_Click;
             // 
             // reservationBtn
             // 
@@ -236,6 +230,7 @@
             librariansButton.Text = "          Librarians";
             librariansButton.TextAlign = ContentAlignment.MiddleLeft;
             librariansButton.UseVisualStyleBackColor = false;
+            librariansButton.Click += librariansButton_Click;
             // 
             // logoutBtn
             // 
@@ -257,11 +252,15 @@
             sidebarTransition.Interval = 10;
             sidebarTransition.Tick += sidebarTransition_Tick;
             // 
+            // dailyTimer
+            // 
+            dailyTimer.Interval = 30000;
+            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1269, 586);
+            ClientSize = new Size(1269, 601);
             Controls.Add(mainPanel);
             Controls.Add(sidebar);
             Controls.Add(panel2);
@@ -270,7 +269,6 @@
             Load += FormMain_Load;
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)hamBtnf).EndInit();
             sidebar.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -279,7 +277,6 @@
 
         private Panel panel2;
         private Label LibrarianLabel;
-        private PictureBox hamBtnf;
         private FlowLayoutPanel sidebar;
         private Button dashboardBtn;
         private Button booksBtn;
@@ -293,5 +290,6 @@
         private System.Windows.Forms.Timer sidebarTransition;
         private Button hamBtn;
         private Panel mainPanel;
+        private System.Windows.Forms.Timer dailyTimer;
     }
 }
