@@ -435,9 +435,12 @@ namespace LibraryManagementSystem
                 conn.Open();
                 string query = @"
             SELECT DISTINCT B.BookID, B.Title
-            FROM BookCopies BC
-            JOIN Books B ON BC.BookID = B.BookID
-            WHERE BC.IsAvailable = 1";
+            FROM Books B
+            WHERE EXISTS (
+                SELECT 1 FROM BookCopies BC
+                WHERE BC.BookID = B.BookID AND BC.Status = 'Available'
+            )
+        ";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 using (SqlDataReader reader = cmd.ExecuteReader())
@@ -578,6 +581,38 @@ namespace LibraryManagementSystem
             }
         }
 
+        //public void GenerateDailyFines()
+        //{
+        //    using (SqlConnection conn = new SqlConnection(connectionString))
+        //    {
+        //        conn.Open();
+
+        //        string query = @"
+        //    SELECT L.LoanID, L.MemberID, L.DueDate
+        //    FROM Loans L
+        //    LEFT JOIN Fines F ON L.LoanID = F.LoanID
+        //    WHERE L.Status = 'Active' 
+        //      AND L.DueDate < GETDATE()
+        //      AND F.LoanID IS NULL";
+
+        //        using (SqlCommand cmd = new SqlCommand(query, conn))
+        //        using (SqlDataReader reader = cmd.ExecuteReader())
+        //        {
+        //            while (reader.Read())
+        //            {
+        //                long loanId = Convert.ToInt64(reader["LoanID"]);
+        //                long memberId = Convert.ToInt64(reader["MemberID"]);
+        //                DateTime dueDate = Convert.ToDateTime(reader["DueDate"]);
+
+        //                int overdueDays = (DateTime.Now.Date - dueDate.Date).Days;
+        //                decimal amount = overdueDays * 20m;
+
+        //                InsertFine(loanId, memberId, amount);
+        //            }
+        //        }
+        //    }
+        //}
+
         public void GenerateDailyFines()
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -585,12 +620,12 @@ namespace LibraryManagementSystem
                 conn.Open();
 
                 string query = @"
-            SELECT L.LoanID, L.MemberID, L.DueDate
-            FROM Loans L
-            LEFT JOIN Fines F ON L.LoanID = F.LoanID
-            WHERE L.Status = 'Active' 
-              AND L.DueDate < GETDATE()
-              AND F.LoanID IS NULL";
+        SELECT L.LoanID, L.MemberID, L.DueDate
+        FROM Loans L
+        LEFT JOIN Fines F ON L.LoanID = F.LoanID
+        WHERE L.Status = 'Active' 
+          AND CAST(L.DueDate AS DATE) < CAST(GETDATE() AS DATE)
+          AND F.LoanID IS NULL";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 using (SqlDataReader reader = cmd.ExecuteReader())
@@ -609,6 +644,7 @@ namespace LibraryManagementSystem
                 }
             }
         }
+
 
         public void UpdateDailyFines()
         {
@@ -642,7 +678,7 @@ namespace LibraryManagementSystem
 
                 string query = @"
             INSERT INTO Fines (LoanID, MemberID, FineDate, Amount, Status)
-            VALUES (@LoanID, @MemberID, GETDATE(), @Amount, 'Pending')";
+            VALUES (@LoanID, @MemberID, CAST(GETDATE() AS DATE), @Amount, 'Pending')";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -684,9 +720,475 @@ namespace LibraryManagementSystem
             return dt;
         }
 
+        //public DataTable GetPaidFines()
+        //{
+        //    DataTable dt = new DataTable();
+        //    using (SqlConnection conn = new SqlConnection(connectionString))
+        //    {
+        //        string query = @"
+        //    SELECT F.FineID, B.Title AS BookTitle, 
+        //           M.FirstName + ' ' + M.LastName AS MemberName,
+        //           L.DueDate, L.ReturnDate, L.Status
+        //    FROM Fines F
+        //    JOIN Loans L ON F.LoanID = L.LoanID
+        //    JOIN Books B ON L.CopyID = B.BookID
+        //    JOIN Members M ON F.MemberID = M.MemberID
+        //    WHERE F.Status = 'Paid'";
+
+        //        using (SqlCommand cmd = new SqlCommand(query, conn))
+        //        {
+        //            conn.Open();
+        //            SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+        //            adapter.Fill(dt);
+        //        }
+        //    }
+        //    return dt;
+        //}
+
+        public DataTable GetPaidFines()
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+        SELECT 
+            F.FineID, 
+            B.Title AS BookTitle, 
+            M.FirstName + ' ' + M.LastName AS MemberName,
+            L.DueDate, 
+            L.ReturnDate, 
+            L.Status,
+            F.Amount
+        FROM Fines F
+        JOIN Loans L ON F.LoanID = L.LoanID
+        JOIN BookCopies BC ON L.CopyID = BC.CopyID
+        JOIN Books B ON BC.BookID = B.BookID
+        JOIN Members M ON F.MemberID = M.MemberID
+        WHERE F.Status = 'Paid'";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+
+        public DataTable GetUnpaidFines()
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+        SELECT 
+            F.FineID,
+            B.Title AS BookTitle,
+            M.FirstName + ' ' + M.LastName AS MemberName,
+            L.DueDate,
+            L.ReturnDate,
+            F.Status,
+            F.Amount
+        FROM Fines F
+        JOIN Loans L ON F.LoanID = L.LoanID
+        JOIN Members M ON F.MemberID = M.MemberID
+        JOIN BookCopies BC ON L.CopyID = BC.CopyID
+        JOIN Books B ON BC.BookID = B.BookID
+        WHERE F.Status = 'Pending'"; // this line filters unpaid
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                {
+                    adapter.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+        public void DeleteFine(long fineId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "DELETE FROM Fines WHERE FineID = @FineID";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FineID", fineId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void MarkFinesAsPaid(List<long> fineIds)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                foreach (long fineId in fineIds)
+                {
+                    string query = "UPDATE Fines SET Status = 'Paid' WHERE FineID = @fineId";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fineId", fineId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        public DataTable SearchAllFines(string keyword)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+        SELECT F.FineID, B.Title AS BookTitle, 
+               M.FirstName + ' ' + M.LastName AS MemberName,
+               L.DueDate, L.ReturnDate, F.Amount, F.Status
+        FROM Fines F
+        JOIN Loans L ON F.LoanID = L.LoanID
+        JOIN Books B ON L.CopyID = B.BookID
+        JOIN Members M ON F.MemberID = M.MemberID
+        WHERE LOWER(B.Title) LIKE '%' + @keyword + '%' 
+           OR LOWER(M.FirstName + ' ' + M.LastName) LIKE '%' + @keyword + '%'";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@keyword", keyword.ToLower());
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+
+        public DataTable SearchPaidFines(string keyword)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+        SELECT F.FineID, B.Title AS BookTitle, 
+               M.FirstName + ' ' + M.LastName AS MemberName,
+               L.DueDate, L.ReturnDate, F.Amount, F.Status
+        FROM Fines F
+        JOIN Loans L ON F.LoanID = L.LoanID
+        JOIN Books B ON L.CopyID = B.BookID
+        JOIN Members M ON F.MemberID = M.MemberID
+        WHERE F.Status = 'Paid' AND 
+              (LOWER(B.Title) LIKE '%' + @keyword + '%' 
+              OR LOWER(M.FirstName + ' ' + M.LastName) LIKE '%' + @keyword + '%')";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@keyword", keyword.ToLower());
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+
+        public DataTable SearchUnpaidFines(string keyword)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+        SELECT F.FineID, B.Title AS BookTitle, 
+               M.FirstName + ' ' + M.LastName AS MemberName,
+               L.DueDate, F.Amount
+        FROM Fines F
+        JOIN Loans L ON F.LoanID = L.LoanID
+        JOIN Books B ON L.CopyID = B.BookID
+        JOIN Members M ON F.MemberID = M.MemberID
+        WHERE F.Status = 'Pending' AND 
+              (LOWER(B.Title) LIKE '%' + @keyword + '%' 
+              OR LOWER(M.FirstName + ' ' + M.LastName) LIKE '%' + @keyword + '%')";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@keyword", keyword.ToLower());
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+        public void WaiveFines(List<long> fineIds, long waivedByUserId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                foreach (long fineId in fineIds)
+                {
+                    string query = @"
+                UPDATE Fines
+                SET Status = 'Waived',
+                    Notes = 'Waived by UserID: ' + CAST(@UserID AS NVARCHAR),
+                    PaidProcessedByUserID = @UserID,
+                    PaidDate = GETDATE()
+                WHERE FineID = @FineID AND Status = 'Pending'";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@FineID", fineId);
+                        cmd.Parameters.AddWithValue("@UserID", waivedByUserId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
 
 
 
+        public DataTable GetWaivedFines()
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+        SELECT F.FineID, B.Title AS BookTitle, 
+               M.FirstName + ' ' + M.LastName AS MemberName,
+               L.DueDate, F.PaidDate, F.Status
+        FROM Fines F
+        JOIN Loans L ON F.LoanID = L.LoanID
+        JOIN Books B ON L.CopyID = B.BookID
+        JOIN Members M ON F.MemberID = M.MemberID
+        WHERE F.Status = 'Waived'";  // Only select fines that are waived
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(dt);
+                }
+            }
+            return dt;
+        }
+
+        public void CreateReservation(long copyId, long memberId, long createdByUserId, DateTime expiryDate)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            INSERT INTO Reservations (CopyID, MemberID, CreatedByUserID, ExpiryDate)
+            VALUES (@CopyID, @MemberID, @CreatedByUserID, @ExpiryDate)
+        ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@CopyID", copyId);
+                    cmd.Parameters.AddWithValue("@MemberID", memberId);
+                    cmd.Parameters.AddWithValue("@CreatedByUserID", createdByUserId);
+                    cmd.Parameters.AddWithValue("@ExpiryDate", expiryDate);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void UpdateBookCopyStatusToReserved(long copyId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            UPDATE BookCopies
+            SET Status = 'Reserved', IsAvailable = 0
+            WHERE CopyID = @CopyID
+        ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@CopyID", copyId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+
+        public List<string> GetAvailableBookTitles()
+        {
+            List<string> bookTitles = new List<string>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT DISTINCT B.Title
+            FROM Books B
+            JOIN BookCopies BC ON B.BookID = BC.BookID
+            WHERE BC.Status IN ('Available', 'On Loan')
+        ";
+
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        bookTitles.Add(reader["Title"].ToString());
+                    }
+                }
+            }
+
+            return bookTitles;
+        }
+
+        public (bool, DateTime?) GetCopyStatus(long copyId)
+        {
+            DateTime? dueDate = null;
+            bool isAvailable = false;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT B.IsAvailable, L.DueDate 
+            FROM BookCopies B
+            LEFT JOIN Loans L ON B.CopyID = L.CopyID AND L.Status = 'Active'
+            WHERE B.CopyID = @CopyID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@CopyID", copyId);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            isAvailable = reader["IsAvailable"] != DBNull.Value && Convert.ToBoolean(reader["IsAvailable"]);
+                            dueDate = reader["DueDate"] as DateTime?;
+                        }
+                    }
+                }
+            }
+
+            return (isAvailable, dueDate);
+        }
+
+
+
+        public long GetBestCopyIdByBookTitle(string bookTitle)
+        {
+            long bestCopyId = 0;
+            bool foundAvailableCopy = false;
+            DateTime? earliestDueDate = null;
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT B.CopyID, B.IsAvailable, L.DueDate
+            FROM BookCopies B
+            LEFT JOIN Loans L ON B.CopyID = L.CopyID AND L.Status = 'Active'
+            WHERE B.BookID = (SELECT BookID FROM Books WHERE Title = @Title)";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Title", bookTitle);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            bool isAvailable = Convert.ToBoolean(reader["IsAvailable"]);
+                            DateTime? dueDate = reader["DueDate"] as DateTime?;
+
+                            if (isAvailable)
+                            {
+                                // Found an available copy, stop searching
+                                bestCopyId = Convert.ToInt64(reader["CopyID"]);
+                                foundAvailableCopy = true;
+                                break;  // Found an available copy, no need to check others
+                            }
+                            else
+                            {
+                                // Track the earliest due date for unavailable copies
+                                if (!foundAvailableCopy && dueDate.HasValue)
+                                {
+                                    if (!earliestDueDate.HasValue || dueDate.Value < earliestDueDate.Value)
+                                    {
+                                        bestCopyId = Convert.ToInt64(reader["CopyID"]);
+                                        earliestDueDate = dueDate;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return bestCopyId;
+        }
+
+
+
+        public List<Member> GetActiveMembers()
+        {
+            List<Member> members = new List<Member>();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT MemberID, FirstName + ' ' + LastName AS FullName FROM Members WHERE Status = 'Active'";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        members.Add(new Member
+                        {
+                            MemberID = Convert.ToInt64(reader["MemberID"]),
+                            FullName = reader["FullName"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return members;
+        }
+
+        public DataTable GetReservationDisplayData()
+        {
+            DataTable dt = new DataTable();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT 
+                R.ReservationID,
+                B.Title AS BookTitle,
+                (M.FirstName + ' ' + M.LastName) AS MemberName,
+                R.ReservationDate,
+                R.ExpiryDate,
+                R.Status
+            FROM Reservations R
+            JOIN BookCopies BC ON R.CopyID = BC.CopyID
+            JOIN Books B ON BC.BookID = B.BookID
+            JOIN Members M ON R.MemberID = M.MemberID
+            ORDER BY R.ReservationDate DESC
+        ";
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    adapter.Fill(dt);
+                }
+            }
+
+            return dt;
+        }
 
 
 
@@ -707,7 +1209,7 @@ public class BookDisplay
 }
 
 
-public class MemberDisplay
+public class Member
 {
     public long MemberID { get; set; }
     public string FullName { get; set; }

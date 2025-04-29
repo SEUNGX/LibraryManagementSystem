@@ -135,5 +135,11 @@
             uc_Fines finesControl = new uc_Fines(this);
             SwitchUserControl(finesControl);
         }
+
+        private void reservationBtn_Click(object sender, EventArgs e)
+        {
+            uc_Reservations reservationsControl = new uc_Reservations(this);
+            SwitchUserControl(reservationsControl);
+        }
     }
 }

@@ -200,6 +200,7 @@
             reservationBtn.Text = "          Reservations";
             reservationBtn.TextAlign = ContentAlignment.MiddleLeft;
             reservationBtn.UseVisualStyleBackColor = false;
+            reservationBtn.Click += reservationBtn_Click;
             // 
             // notificationsBtn
             // 

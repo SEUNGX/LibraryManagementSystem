@@ -31,19 +31,115 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            panel2 = new Panel();
+            waivedFinesBtn = new Button();
+            unpaidFinesBtn = new Button();
+            paidFinesBtn = new Button();
+            allFinesBtn = new Button();
+            setPaidBtn = new Button();
+            editBtn = new Button();
             finesDgv = new DataGridView();
             panel1 = new Panel();
-            panel2 = new Panel();
-            button6 = new Button();
-            button5 = new Button();
-            button4 = new Button();
-            button3 = new Button();
-            button2 = new Button();
-            button1 = new Button();
+            searchBox = new TextBox();
+            searchBtn = new Button();
+            waiveBtn = new Button();
+            panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)finesDgv).BeginInit();
             panel1.SuspendLayout();
-            panel2.SuspendLayout();
             SuspendLayout();
+            // 
+            // panel2
+            // 
+            panel2.BackColor = Color.Cornsilk;
+            panel2.Controls.Add(waivedFinesBtn);
+            panel2.Controls.Add(unpaidFinesBtn);
+            panel2.Controls.Add(paidFinesBtn);
+            panel2.Controls.Add(allFinesBtn);
+            panel2.Location = new Point(49, 20);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(359, 41);
+            panel2.TabIndex = 2;
+            // 
+            // waivedFinesBtn
+            // 
+            waivedFinesBtn.BackColor = Color.White;
+            waivedFinesBtn.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            waivedFinesBtn.ForeColor = Color.DarkGoldenrod;
+            waivedFinesBtn.Location = new Point(251, 0);
+            waivedFinesBtn.Name = "waivedFinesBtn";
+            waivedFinesBtn.Size = new Size(108, 41);
+            waivedFinesBtn.TabIndex = 3;
+            waivedFinesBtn.Text = "Waived";
+            waivedFinesBtn.UseVisualStyleBackColor = false;
+            waivedFinesBtn.Click += waivedFinesBtn_Click;
+            // 
+            // unpaidFinesBtn
+            // 
+            unpaidFinesBtn.BackColor = Color.White;
+            unpaidFinesBtn.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            unpaidFinesBtn.ForeColor = Color.DarkGoldenrod;
+            unpaidFinesBtn.Location = new Point(154, 0);
+            unpaidFinesBtn.Name = "unpaidFinesBtn";
+            unpaidFinesBtn.Size = new Size(91, 41);
+            unpaidFinesBtn.TabIndex = 2;
+            unpaidFinesBtn.Text = "Unpaid";
+            unpaidFinesBtn.UseVisualStyleBackColor = false;
+            unpaidFinesBtn.Click += unpaidFinesBtn_Click;
+            // 
+            // paidFinesBtn
+            // 
+            paidFinesBtn.BackColor = Color.White;
+            paidFinesBtn.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            paidFinesBtn.ForeColor = Color.DarkGoldenrod;
+            paidFinesBtn.Location = new Point(76, 0);
+            paidFinesBtn.Name = "paidFinesBtn";
+            paidFinesBtn.Size = new Size(72, 41);
+            paidFinesBtn.TabIndex = 1;
+            paidFinesBtn.Text = "Paid";
+            paidFinesBtn.UseVisualStyleBackColor = false;
+            paidFinesBtn.Click += paidFinesBtn_Click;
+            // 
+            // allFinesBtn
+            // 
+            allFinesBtn.BackColor = Color.White;
+            allFinesBtn.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            allFinesBtn.ForeColor = Color.DarkGoldenrod;
+            allFinesBtn.Location = new Point(0, 0);
+            allFinesBtn.Name = "allFinesBtn";
+            allFinesBtn.Size = new Size(70, 41);
+            allFinesBtn.TabIndex = 0;
+            allFinesBtn.Text = "All";
+            allFinesBtn.UseVisualStyleBackColor = false;
+            allFinesBtn.Click += allFinesBtn_Click;
+            // 
+            // setPaidBtn
+            // 
+            setPaidBtn.BackColor = Color.White;
+            setPaidBtn.BackgroundImage = Properties.Resources.icons8_pay_30;
+            setPaidBtn.BackgroundImageLayout = ImageLayout.Center;
+            setPaidBtn.Font = new Font("Arial Rounded MT Bold", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            setPaidBtn.Location = new Point(786, 3);
+            setPaidBtn.Name = "setPaidBtn";
+            setPaidBtn.Size = new Size(50, 62);
+            setPaidBtn.TabIndex = 5;
+            setPaidBtn.Text = "Paid";
+            setPaidBtn.TextAlign = ContentAlignment.BottomCenter;
+            setPaidBtn.UseVisualStyleBackColor = false;
+            setPaidBtn.Click += setPaidBtn_Click;
+            // 
+            // editBtn
+            // 
+            editBtn.BackColor = Color.White;
+            editBtn.BackgroundImage = Properties.Resources.icons8_edit_30;
+            editBtn.BackgroundImageLayout = ImageLayout.Center;
+            editBtn.Font = new Font("Arial Rounded MT Bold", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            editBtn.Location = new Point(842, 3);
+            editBtn.Name = "editBtn";
+            editBtn.Size = new Size(50, 62);
+            editBtn.TabIndex = 3;
+            editBtn.Text = "Edit";
+            editBtn.TextAlign = ContentAlignment.BottomCenter;
+            editBtn.UseVisualStyleBackColor = false;
             // 
             // finesDgv
             // 
@@ -89,110 +185,75 @@
             panel1.Size = new Size(899, 438);
             panel1.TabIndex = 1;
             // 
-            // panel2
+            // searchBox
             // 
-            panel2.BackColor = Color.Cornsilk;
-            panel2.Controls.Add(button6);
-            panel2.Controls.Add(button5);
-            panel2.Controls.Add(button4);
-            panel2.Controls.Add(button3);
-            panel2.Controls.Add(button2);
-            panel2.Controls.Add(button1);
-            panel2.Location = new Point(49, 20);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(899, 41);
-            panel2.TabIndex = 2;
+            searchBox.Font = new Font("Arial Rounded MT Bold", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            searchBox.Location = new Point(414, 20);
+            searchBox.Multiline = true;
+            searchBox.Name = "searchBox";
+            searchBox.Size = new Size(294, 41);
+            searchBox.TabIndex = 6;
             // 
-            // button6
+            // searchBtn
             // 
-            button6.BackColor = Color.MediumSeaGreen;
-            button6.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button6.Location = new Point(617, 0);
-            button6.Name = "button6";
-            button6.Size = new Size(93, 41);
-            button6.TabIndex = 5;
-            button6.Text = "Set as Paid";
-            button6.UseVisualStyleBackColor = false;
+            searchBtn.BackColor = Color.White;
+            searchBtn.BackgroundImage = Properties.Resources.icons8_search_30;
+            searchBtn.BackgroundImageLayout = ImageLayout.Center;
+            searchBtn.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            searchBtn.Location = new Point(704, 20);
+            searchBtn.Name = "searchBtn";
+            searchBtn.Size = new Size(50, 41);
+            searchBtn.TabIndex = 7;
+            searchBtn.UseVisualStyleBackColor = false;
+            searchBtn.Click += searchBtn_Click;
             // 
-            // button5
+            // waiveBtn
             // 
-            button5.BackColor = Color.IndianRed;
-            button5.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button5.Location = new Point(806, 0);
-            button5.Name = "button5";
-            button5.Size = new Size(84, 41);
-            button5.TabIndex = 4;
-            button5.Text = "Delete";
-            button5.UseVisualStyleBackColor = false;
-            // 
-            // button4
-            // 
-            button4.BackColor = SystemColors.Highlight;
-            button4.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button4.Location = new Point(716, 0);
-            button4.Name = "button4";
-            button4.Size = new Size(84, 41);
-            button4.TabIndex = 3;
-            button4.Text = "Edit";
-            button4.UseVisualStyleBackColor = false;
-            // 
-            // button3
-            // 
-            button3.BackColor = Color.SandyBrown;
-            button3.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button3.Location = new Point(306, 0);
-            button3.Name = "button3";
-            button3.Size = new Size(147, 41);
-            button3.TabIndex = 2;
-            button3.Text = "Unpaid";
-            button3.UseVisualStyleBackColor = false;
-            // 
-            // button2
-            // 
-            button2.BackColor = Color.SandyBrown;
-            button2.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button2.Location = new Point(150, 0);
-            button2.Name = "button2";
-            button2.Size = new Size(150, 41);
-            button2.TabIndex = 1;
-            button2.Text = "Paid";
-            button2.UseVisualStyleBackColor = false;
-            // 
-            // button1
-            // 
-            button1.BackColor = Color.SandyBrown;
-            button1.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button1.Location = new Point(0, 0);
-            button1.Name = "button1";
-            button1.Size = new Size(144, 41);
-            button1.TabIndex = 0;
-            button1.Text = "All";
-            button1.UseVisualStyleBackColor = false;
+            waiveBtn.BackColor = Color.White;
+            waiveBtn.BackgroundImage = Properties.Resources.icons8_cancel_30;
+            waiveBtn.BackgroundImageLayout = ImageLayout.Center;
+            waiveBtn.Font = new Font("Arial Rounded MT Bold", 6F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            waiveBtn.Location = new Point(898, 3);
+            waiveBtn.Name = "waiveBtn";
+            waiveBtn.Size = new Size(50, 62);
+            waiveBtn.TabIndex = 8;
+            waiveBtn.Text = "Waive";
+            waiveBtn.TextAlign = ContentAlignment.BottomCenter;
+            waiveBtn.UseVisualStyleBackColor = false;
+            waiveBtn.Click += waiveBtn_Click;
             // 
             // uc_Fines
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(waiveBtn);
+            Controls.Add(searchBtn);
+            Controls.Add(searchBox);
+            Controls.Add(setPaidBtn);
             Controls.Add(panel2);
+            Controls.Add(editBtn);
             Controls.Add(panel1);
             Name = "uc_Fines";
             Size = new Size(1013, 542);
+            panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)finesDgv).EndInit();
             panel1.ResumeLayout(false);
-            panel2.ResumeLayout(false);
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
-
+        private Panel panel2;
+        private Button editBtn;
+        private Button unpaidFinesBtn;
+        private Button paidFinesBtn;
+        private Button allFinesBtn;
+        private Button setPaidBtn;
         private DataGridView finesDgv;
         private Panel panel1;
-        private Panel panel2;
-        private Button button5;
-        private Button button4;
-        private Button button3;
-        private Button button2;
-        private Button button1;
-        private Button button6;
+        private TextBox searchBox;
+        private Button searchBtn;
+        private Button waivedFinesBtn;
+        private Button waiveBtn;
     }
 }

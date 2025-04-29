@@ -23,28 +23,6 @@ namespace LibraryManagementSystem
 
 
 
-        //private void uc_AddLoan_Load(object sender, EventArgs e)
-        //{
-        //    DatabaseHelper db = new DatabaseHelper();
-
-        //    // Fill member combo box
-        //    loanMembercb.Items.Clear();
-        //    var members = db.GetActiveMemberNames();
-        //    foreach (string name in members)
-        //    {
-        //        loanMembercb.Items.Add(name);
-        //    }
-
-        //    // Fill book combo box
-        //    loanBookCb.Items.Clear();
-        //    // Bind the available books to the combo box
-        //    loanBookCb.DataSource = db.GetAvailableBooks(); // returns List<BookDisplay>
-        //    loanBookCb.DisplayMember = "Title"; // what user sees (book title)
-        //    loanBookCb.ValueMember = "CopyID"; // what gets saved (CopyID)
-        //    loanBookCb.SelectedIndex = -1;     // Optionally set to no selection by default
-
-
-        //}
 
         private void uc_AddLoan_Load(object sender, EventArgs e)
         {
