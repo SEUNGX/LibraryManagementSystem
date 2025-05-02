@@ -158,9 +158,9 @@
             finesDgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = Color.Khaki;
-            dataGridViewCellStyle3.Font = new Font("Arial", 8F);
+            dataGridViewCellStyle3.Font = new Font("Arial", 10F);
             dataGridViewCellStyle3.ForeColor = Color.Black;
-            dataGridViewCellStyle3.SelectionBackColor = Color.FromArgb(200, 230, 255);
+            dataGridViewCellStyle3.SelectionBackColor = Color.FromArgb(255, 224, 192);
             dataGridViewCellStyle3.SelectionForeColor = Color.Black;
             dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
             finesDgv.DefaultCellStyle = dataGridViewCellStyle3;

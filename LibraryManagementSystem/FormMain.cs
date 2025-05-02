@@ -62,6 +62,8 @@
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            DatabaseHelper db = new DatabaseHelper();
+            db.MarkExpiredReservations();
             fineCheckTimer = new System.Windows.Forms.Timer();
             fineCheckTimer.Interval = 30000; // 30 seconds
             fineCheckTimer.Tick += FineCheckTimer_Tick;

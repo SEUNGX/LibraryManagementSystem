@@ -1190,6 +1190,149 @@ namespace LibraryManagementSystem
             return dt;
         }
 
+        public DataTable GetFilteredReservationsByStatus(string status)
+        {
+            DataTable dt = new DataTable();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT 
+                R.ReservationID,
+                B.Title AS BookTitle,
+                (M.FirstName + ' ' + M.LastName) AS MemberName,
+                R.ReservationDate,
+                R.ExpiryDate,
+                R.Status,
+                R.ActionDate
+            FROM Reservations R
+            JOIN BookCopies BC ON R.CopyID = BC.CopyID
+            JOIN Books B ON BC.BookID = B.BookID
+            JOIN Members M ON R.MemberID = M.MemberID
+            WHERE R.Status = @Status
+            ORDER BY R.ReservationDate DESC";
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    adapter.SelectCommand.Parameters.AddWithValue("@Status", status);
+                    adapter.Fill(dt);
+                }
+            }
+
+            return dt;
+        }
+
+        public void MarkReservationsAsClaimed(List<int> reservationIds, long userId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                foreach (int reservationId in reservationIds)
+                {
+                    string query = @"
+                UPDATE Reservations
+                SET Status = 'Claimed',
+                    ActionDate = @ActionDate,
+                    ActionByUserID = @UserId
+                WHERE ReservationID = @ReservationID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ActionDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@UserId", userId);
+                        cmd.Parameters.AddWithValue("@ReservationID", reservationId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        public void CancelReservation(int reservationID, long userID)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"UPDATE Reservations 
+                         SET Status = 'Cancelled', 
+                             ActionDate = @ActionDate, 
+                             ActionByUserID = @UserID 
+                         WHERE ReservationID = @ReservationID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ActionDate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@UserID", userID);
+                    cmd.Parameters.AddWithValue("@ReservationID", reservationID);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public void MarkExpiredReservations()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            UPDATE Reservations
+            SET Status = 'Expired',
+                ActionDate = @Today
+            WHERE Status = 'Pending'
+              AND CAST(ExpiryDate AS DATE) < @Today;
+        ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Today", DateTime.Today);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public DataTable GetFilteredReservationsByStatus(string status, string keyword = "")
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT 
+                r.ReservationID,
+                b.Title AS BookTitle,
+                (m.FirstName + ' ' + m.LastName) AS MemberName,
+                r.ReservationDate,
+                r.ExpiryDate,
+                r.Status,
+                r.ActionDate
+            FROM Reservations r
+            JOIN Members m ON r.MemberID = m.MemberID
+            JOIN BookCopies bc ON r.CopyID = bc.CopyID
+            JOIN Books b ON bc.BookID = b.BookID
+            WHERE (@status = 'All' OR r.Status = @status)";
+
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    query += " AND (LOWER(b.Title) LIKE @keyword OR LOWER(m.FirstName + ' ' + m.LastName) LIKE @keyword)";
+                }
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@status", status);
+                    if (!string.IsNullOrEmpty(keyword))
+                    {
+                        cmd.Parameters.AddWithValue("@keyword", "%" + keyword.ToLower() + "%");
+                    }
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt);
+                    return dt;
+                }
+            }
+        }
 
 
 
