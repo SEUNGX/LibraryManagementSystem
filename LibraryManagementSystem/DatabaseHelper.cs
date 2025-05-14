@@ -1333,6 +1333,90 @@ namespace LibraryManagementSystem
                 }
             }
         }
+        public void CreateLoanFromReservation(int reservationId, long userId, DateTime dueDate)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                // 1. Get reservation info
+                string selectQuery = @"
+            SELECT r.CopyID, r.MemberID
+            FROM Reservations r
+            WHERE r.ReservationID = @ReservationID";
+
+                long copyID = 0;
+                long memberID = 0;
+
+                using (SqlCommand cmd = new SqlCommand(selectQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ReservationID", reservationId);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            copyID = Convert.ToInt64(reader["CopyID"]);
+                            memberID = Convert.ToInt64(reader["MemberID"]);
+                        }
+                    }
+                }
+
+                if (copyID == 0 || memberID == 0)
+                    throw new Exception("Invalid reservation data.");
+
+                // 2. Insert loan
+                string insertLoan = @"
+            INSERT INTO Loans (MemberID, CopyID, CheckedOutByUserID, LoanDate, DueDate)
+            VALUES (@MemberID, @CopyID, @UserID, @LoanDate, @DueDate);
+        ";
+
+                using (SqlCommand cmd = new SqlCommand(insertLoan, conn))
+                {
+                    cmd.Parameters.AddWithValue("@MemberID", memberID);
+                    cmd.Parameters.AddWithValue("@CopyID", copyID);
+                    cmd.Parameters.AddWithValue("@UserID", userId);
+                    cmd.Parameters.AddWithValue("@LoanDate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@DueDate", dueDate); // or your logic
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3. Mark copy as unavailable
+                string updateCopy = "UPDATE BookCopies SET IsAvailable = 0, Status = 'On Loan' WHERE CopyID = @CopyID";
+                using (SqlCommand cmd = new SqlCommand(updateCopy, conn))
+                {
+                    cmd.Parameters.AddWithValue("@CopyID", copyID);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public DataTable GetLoanDisplayData()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT 
+                b.Title AS [Book Title],
+                (m.FirstName + ' ' + m.LastName) AS [Member Name],
+                CONVERT(date, l.LoanDate) AS [Loan Date],
+                CONVERT(date, l.DueDate) AS [Due Date],
+                l.Status
+            FROM Loans l
+            INNER JOIN Members m ON l.MemberID = m.MemberID
+            INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+            INNER JOIN Books b ON bc.BookID = b.BookID
+            ORDER BY l.LoanDate DESC";
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    DataTable loansTable = new DataTable();
+                    adapter.Fill(loansTable);
+                    return loansTable;
+                }
+            }
+        }
 
 
 

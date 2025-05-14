@@ -26,6 +26,10 @@ namespace LibraryManagementSystem
             DatabaseHelper db = new DatabaseHelper();
             reservationsDgv.DataSource = db.GetReservationDisplayData();
 
+            ResetFineNavButtonStyles(); // First, reset others
+            allReservationsBtn.BackColor = Color.OliveDrab; // Customize color
+            allReservationsBtn.ForeColor = Color.White;
+
             // Prevent multiple subscriptions to RowPostPaint
             reservationsDgv.RowPostPaint -= ReservationsDgv_RowPostPaint;
             reservationsDgv.RowPostPaint += ReservationsDgv_RowPostPaint;
@@ -213,6 +217,10 @@ namespace LibraryManagementSystem
             DataTable dt = db.GetFilteredReservationsByStatus("Pending");
             reservationsDgv.DataSource = dt;
 
+            ResetFineNavButtonStyles(); // First, reset others
+            pendingReservationsBtn.BackColor = Color.OliveDrab; // Customize color
+            pendingReservationsBtn.ForeColor = Color.White;
+
             ResetColumnVisibility();  // Reset column visibility
             AdjustPendingColumns();    // Adjust columns for Pending status
 
@@ -228,6 +236,10 @@ namespace LibraryManagementSystem
             DatabaseHelper db = new DatabaseHelper();
             DataTable dt = db.GetFilteredReservationsByStatus("Cancelled");
             reservationsDgv.DataSource = dt;
+
+            ResetFineNavButtonStyles(); // First, reset others
+            cancelledReservationsBtn.BackColor = Color.OliveDrab; // Customize color
+            cancelledReservationsBtn.ForeColor = Color.White;
 
             ResetColumnVisibility();  // Reset column visibility
             AdjustCancelledColumns();  // Adjust columns for Cancelled status
@@ -245,6 +257,10 @@ namespace LibraryManagementSystem
             DataTable dt = db.GetFilteredReservationsByStatus("Expired");
             reservationsDgv.DataSource = dt;
 
+            ResetFineNavButtonStyles(); // First, reset others
+            expiredReservationsBtn.BackColor = Color.OliveDrab; // Customize color
+            expiredReservationsBtn.ForeColor = Color.White;
+
             ResetColumnVisibility();  // Reset column visibility
             AdjustExpiredColumns();    // Adjust columns for Expired status
 
@@ -260,6 +276,10 @@ namespace LibraryManagementSystem
             DatabaseHelper db = new DatabaseHelper();
             DataTable dt = db.GetFilteredReservationsByStatus("Claimed");
             reservationsDgv.DataSource = dt;
+
+            ResetFineNavButtonStyles(); // First, reset others
+            claimedReservationsBtn.BackColor = Color.OliveDrab; // Customize color
+            claimedReservationsBtn.ForeColor = Color.White;
 
             ResetColumnVisibility();  // Reset column visibility
             AdjustClaimedColumns();    // Adjust columns for Claimed status
@@ -290,12 +310,27 @@ namespace LibraryManagementSystem
                 return;
             }
 
-            DatabaseHelper db = new DatabaseHelper();
-            db.MarkReservationsAsClaimed(selectedReservationIds, Session.LoggedInUserID);
+            // 🔮 Show popup to pick due date
+            DueDatePickerForm dueDateForm = new DueDatePickerForm();
+            if (dueDateForm.ShowDialog() != DialogResult.OK)
+            {
+                MessageBox.Show("Operation cancelled. No due date was selected.");
+                return;
+            }
 
-            MessageBox.Show("Selected reservations marked as Claimed.");
+            DateTime selectedDueDate = dueDateForm.SelectedDueDate;
+
+            DatabaseHelper db = new DatabaseHelper();
+            foreach (int reservationId in selectedReservationIds)
+            {
+                db.MarkReservationsAsClaimed(new List<int> { reservationId }, Session.LoggedInUserID);
+                db.CreateLoanFromReservation(reservationId, Session.LoggedInUserID, selectedDueDate); // pass due date!
+            }
+
+            MessageBox.Show("Selected reservations have been claimed and converted to loans.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             LoadReservationTable();
         }
+
 
 
         private void cancelBtn_Click(object sender, EventArgs e)
@@ -396,5 +431,20 @@ namespace LibraryManagementSystem
             }
         }
 
+
+        private void ResetFineNavButtonStyles()
+        {
+            allReservationsBtn.BackColor = Color.White;
+            cancelledReservationsBtn.BackColor = Color.White;
+            claimedReservationsBtn.BackColor = Color.White;
+            expiredReservationsBtn.BackColor = Color.White;
+            pendingReservationsBtn.BackColor = Color.White;
+
+            allReservationsBtn.ForeColor = Color.OliveDrab;
+            cancelledReservationsBtn.ForeColor = Color.OliveDrab;
+            claimedReservationsBtn.ForeColor = Color.OliveDrab;
+            expiredReservationsBtn.ForeColor = Color.OliveDrab;
+            pendingReservationsBtn.ForeColor = Color.OliveDrab;
+        }
     }
 }
