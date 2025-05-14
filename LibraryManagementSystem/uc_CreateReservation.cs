@@ -109,11 +109,8 @@ namespace LibraryManagementSystem
 
         private void discardReservationBtn_Click(object sender, EventArgs e)
         {
-        
             uc_Reservations reservationsControl = new uc_Reservations(formMain);
             formMain.SwitchUserControl(reservationsControl);
-        
-
     }
 }
 }

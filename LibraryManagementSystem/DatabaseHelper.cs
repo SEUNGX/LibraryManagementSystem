@@ -1019,17 +1019,12 @@ namespace LibraryManagementSystem
         public List<string> GetAvailableBookTitles()
         {
             List<string> bookTitles = new List<string>();
+            List<string> filteredTitles = new List<string>();
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
-                string query = @"
-            SELECT DISTINCT B.Title
-            FROM Books B
-            JOIN BookCopies BC ON B.BookID = BC.BookID
-            WHERE BC.Status IN ('Available', 'On Loan')
-        ";
-
+                string query = @"SELECT DISTINCT B.Title FROM Books B";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 using (SqlDataReader reader = cmd.ExecuteReader())
@@ -1041,8 +1036,18 @@ namespace LibraryManagementSystem
                 }
             }
 
-            return bookTitles;
+            // Filter only titles that return a valid CopyID
+            foreach (string title in bookTitles)
+            {
+                if (GetBestCopyIdByBookTitle(title) > 0)
+                {
+                    filteredTitles.Add(title);
+                }
+            }
+
+            return filteredTitles;
         }
+
 
         public (bool, DateTime?) GetCopyStatus(long copyId)
         {
@@ -1253,30 +1258,82 @@ namespace LibraryManagementSystem
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                string query = @"UPDATE Reservations 
-                         SET Status = 'Cancelled', 
-                             ActionDate = @ActionDate, 
-                             ActionByUserID = @UserID 
-                         WHERE ReservationID = @ReservationID";
+                conn.Open();
 
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                // Step 1: Get the CopyID from the reservation
+                long copyID = 0;
+                string getCopyIdQuery = "SELECT CopyID FROM Reservations WHERE ReservationID = @ReservationID";
+
+                using (SqlCommand getCmd = new SqlCommand(getCopyIdQuery, conn))
+                {
+                    getCmd.Parameters.AddWithValue("@ReservationID", reservationID);
+                    var result = getCmd.ExecuteScalar();
+                    if (result != null)
+                        copyID = Convert.ToInt64(result);
+                }
+
+                // Step 2: Cancel the reservation
+                string updateReservationQuery = @"
+            UPDATE Reservations 
+            SET Status = 'Cancelled', 
+                ActionDate = @ActionDate, 
+                ActionByUserID = @UserID 
+            WHERE ReservationID = @ReservationID";
+
+                using (SqlCommand cmd = new SqlCommand(updateReservationQuery, conn))
                 {
                     cmd.Parameters.AddWithValue("@ActionDate", DateTime.Now);
                     cmd.Parameters.AddWithValue("@UserID", userID);
                     cmd.Parameters.AddWithValue("@ReservationID", reservationID);
-
-                    conn.Open();
                     cmd.ExecuteNonQuery();
+                }
+
+                // Step 3: Set the copy as available again
+                if (copyID > 0)
+                {
+                    string updateCopyQuery = @"
+                UPDATE BookCopies 
+                SET IsAvailable = 1, Status = 'Available' 
+                WHERE CopyID = @CopyID";
+
+                    using (SqlCommand updateCmd = new SqlCommand(updateCopyQuery, conn))
+                    {
+                        updateCmd.Parameters.AddWithValue("@CopyID", copyID);
+                        updateCmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
+
         public void MarkExpiredReservations()
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
-                string query = @"
+                // 1. Get all CopyIDs from expired reservations
+                string getCopyIdsQuery = @"
+            SELECT CopyID
+            FROM Reservations
+            WHERE Status = 'Pending' AND CAST(ExpiryDate AS DATE) < @Today;
+        ";
+
+                List<long> expiredCopyIds = new List<long>();
+
+                using (SqlCommand cmd = new SqlCommand(getCopyIdsQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Today", DateTime.Today);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            expiredCopyIds.Add(Convert.ToInt64(reader["CopyID"]));
+                        }
+                    }
+                }
+
+                // 2. Update the reservations to 'Expired'
+                string updateReservationsQuery = @"
             UPDATE Reservations
             SET Status = 'Expired',
                 ActionDate = @Today
@@ -1284,13 +1341,31 @@ namespace LibraryManagementSystem
               AND CAST(ExpiryDate AS DATE) < @Today;
         ";
 
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlCommand cmd = new SqlCommand(updateReservationsQuery, conn))
                 {
                     cmd.Parameters.AddWithValue("@Today", DateTime.Today);
                     cmd.ExecuteNonQuery();
                 }
+
+                // 3. Set those CopyIDs as Available in BookCopies
+                foreach (long copyId in expiredCopyIds)
+                {
+                    string updateCopyQuery = @"
+                UPDATE BookCopies
+                SET IsAvailable = 1,
+                    Status = 'Available'
+                WHERE CopyID = @CopyID;
+            ";
+
+                    using (SqlCommand cmd = new SqlCommand(updateCopyQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@CopyID", copyId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
             }
         }
+
 
         public DataTable GetFilteredReservationsByStatus(string status, string keyword = "")
         {
