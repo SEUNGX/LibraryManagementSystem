@@ -36,7 +36,13 @@
             panel1 = new Panel();
             loansDgv = new DataGridView();
             allLoansBtn = new Button();
-            button1 = new Button();
+            onLoanBtn = new Button();
+            label1 = new Label();
+            overdueLoansBtn = new Button();
+            returnedLoansBtn = new Button();
+            returnBtn = new Button();
+            searchLoansTb = new TextBox();
+            searchBtn = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)loansDgv).BeginInit();
             SuspendLayout();
@@ -119,23 +125,102 @@
             allLoansBtn.UseVisualStyleBackColor = false;
             allLoansBtn.Click += allLoansBtn_Click;
             // 
-            // button1
+            // onLoanBtn
             // 
-            button1.BackColor = Color.White;
-            button1.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button1.ForeColor = Color.SteelBlue;
-            button1.Location = new Point(116, 35);
-            button1.Name = "button1";
-            button1.Size = new Size(54, 30);
-            button1.TabIndex = 6;
-            button1.Text = "All";
-            button1.UseVisualStyleBackColor = false;
+            onLoanBtn.BackColor = Color.White;
+            onLoanBtn.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            onLoanBtn.ForeColor = Color.SteelBlue;
+            onLoanBtn.Location = new Point(116, 35);
+            onLoanBtn.Name = "onLoanBtn";
+            onLoanBtn.Size = new Size(80, 30);
+            onLoanBtn.TabIndex = 6;
+            onLoanBtn.Text = "On Loan";
+            onLoanBtn.UseVisualStyleBackColor = false;
+            onLoanBtn.Click += onLoanBtn_Click;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Arial Rounded MT Bold", 13.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label1.ForeColor = Color.SteelBlue;
+            label1.Location = new Point(3, 5);
+            label1.Name = "label1";
+            label1.Size = new Size(80, 27);
+            label1.TabIndex = 7;
+            label1.Text = "Loans";
+            // 
+            // overdueLoansBtn
+            // 
+            overdueLoansBtn.BackColor = Color.White;
+            overdueLoansBtn.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            overdueLoansBtn.ForeColor = Color.SteelBlue;
+            overdueLoansBtn.Location = new Point(297, 35);
+            overdueLoansBtn.Name = "overdueLoansBtn";
+            overdueLoansBtn.Size = new Size(80, 30);
+            overdueLoansBtn.TabIndex = 8;
+            overdueLoansBtn.Text = "Overdue";
+            overdueLoansBtn.UseVisualStyleBackColor = false;
+            overdueLoansBtn.Click += overdueLoansBtn_Click;
+            // 
+            // returnedLoansBtn
+            // 
+            returnedLoansBtn.BackColor = Color.White;
+            returnedLoansBtn.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            returnedLoansBtn.ForeColor = Color.SteelBlue;
+            returnedLoansBtn.Location = new Point(202, 35);
+            returnedLoansBtn.Name = "returnedLoansBtn";
+            returnedLoansBtn.Size = new Size(89, 30);
+            returnedLoansBtn.TabIndex = 9;
+            returnedLoansBtn.Text = "Returned";
+            returnedLoansBtn.UseVisualStyleBackColor = false;
+            returnedLoansBtn.Click += returnedLoansBtn_Click;
+            // 
+            // returnBtn
+            // 
+            returnBtn.BackColor = Color.SteelBlue;
+            returnBtn.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            returnBtn.ForeColor = Color.Azure;
+            returnBtn.Location = new Point(766, 35);
+            returnBtn.Name = "returnBtn";
+            returnBtn.Size = new Size(80, 30);
+            returnBtn.TabIndex = 10;
+            returnBtn.Text = "Return";
+            returnBtn.UseVisualStyleBackColor = false;
+            returnBtn.Click += returnBtn_Click;
+            // 
+            // searchLoansTb
+            // 
+            searchLoansTb.Font = new Font("Arial Rounded MT Bold", 10.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            searchLoansTb.ForeColor = Color.SteelBlue;
+            searchLoansTb.Location = new Point(396, 35);
+            searchLoansTb.Name = "searchLoansTb";
+            searchLoansTb.Size = new Size(280, 28);
+            searchLoansTb.TabIndex = 11;
+            // 
+            // searchBtn
+            // 
+            searchBtn.BackColor = Color.White;
+            searchBtn.BackgroundImage = Properties.Resources.icons8_search_30;
+            searchBtn.BackgroundImageLayout = ImageLayout.Center;
+            searchBtn.Font = new Font("Arial Rounded MT Bold", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            searchBtn.Location = new Point(682, 29);
+            searchBtn.Name = "searchBtn";
+            searchBtn.Size = new Size(35, 38);
+            searchBtn.TabIndex = 12;
+            searchBtn.UseVisualStyleBackColor = false;
+            searchBtn.Click += searchBtn_Click;
             // 
             // uc_Loans
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            Controls.Add(button1);
+            Controls.Add(searchBtn);
+            Controls.Add(searchLoansTb);
+            Controls.Add(returnBtn);
+            Controls.Add(returnedLoansBtn);
+            Controls.Add(overdueLoansBtn);
+            Controls.Add(label1);
+            Controls.Add(onLoanBtn);
             Controls.Add(allLoansBtn);
             Controls.Add(panel1);
             Controls.Add(addLoanBtn);
@@ -145,6 +230,7 @@
             panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)loansDgv).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -153,6 +239,12 @@
         private Panel panel1;
         private DataGridView loansDgv;
         private Button allLoansBtn;
-        private Button button1;
+        private Button onLoanBtn;
+        private Label label1;
+        private Button overdueLoansBtn;
+        private Button returnedLoansBtn;
+        private Button returnBtn;
+        private TextBox searchLoansTb;
+        private Button searchBtn;
     }
 }

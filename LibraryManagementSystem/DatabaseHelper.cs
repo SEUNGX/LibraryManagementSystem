@@ -504,7 +504,7 @@ namespace LibraryManagementSystem
                         cmd.Parameters.AddWithValue("@CheckedOutByUserID", checkedOutBy);  // Assuming this is the logged-in user
                         cmd.Parameters.AddWithValue("@LoanDate", loanDate);
                         cmd.Parameters.AddWithValue("@DueDate", dueDate);
-                        cmd.Parameters.AddWithValue("@Status", "Active");  // Assuming the loan status is active initially
+                        cmd.Parameters.AddWithValue("@Status", "On Loan");  // Assuming the loan status is active initially
 
                         loanID = Convert.ToInt64(cmd.ExecuteScalar());  // Get the LoanID of the newly inserted loan
                     }
@@ -623,7 +623,7 @@ namespace LibraryManagementSystem
         SELECT L.LoanID, L.MemberID, L.DueDate
         FROM Loans L
         LEFT JOIN Fines F ON L.LoanID = F.LoanID
-        WHERE L.Status = 'Active' 
+        WHERE L.Status = 'On Loan' 
           AND CAST(L.DueDate AS DATE) < CAST(GETDATE() AS DATE)
           AND F.LoanID IS NULL";
 
@@ -658,7 +658,7 @@ namespace LibraryManagementSystem
             FROM Fines F
             INNER JOIN Loans L ON F.LoanID = L.LoanID
             WHERE F.Status = 'Pending'
-              AND L.Status = 'Active'
+              AND L.Status = 'On Loan'
               AND L.ReturnDate IS NULL
               AND GETDATE() > L.DueDate";
 
@@ -1060,7 +1060,7 @@ namespace LibraryManagementSystem
                 string query = @"
             SELECT B.IsAvailable, L.DueDate 
             FROM BookCopies B
-            LEFT JOIN Loans L ON B.CopyID = L.CopyID AND L.Status = 'Active'
+            LEFT JOIN Loans L ON B.CopyID = L.CopyID AND L.Status = 'On Loan'
             WHERE B.CopyID = @CopyID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -1095,7 +1095,7 @@ namespace LibraryManagementSystem
                 string query = @"
             SELECT B.CopyID, B.IsAvailable, L.DueDate
             FROM BookCopies B
-            LEFT JOIN Loans L ON B.CopyID = L.CopyID AND L.Status = 'Active'
+            LEFT JOIN Loans L ON B.CopyID = L.CopyID AND L.Status = 'On Loan'
             WHERE B.BookID = (SELECT BookID FROM Books WHERE Title = @Title)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -1472,17 +1472,18 @@ namespace LibraryManagementSystem
                 conn.Open();
 
                 string query = @"
-            SELECT 
-                b.Title AS [Book Title],
-                (m.FirstName + ' ' + m.LastName) AS [Member Name],
-                CONVERT(date, l.LoanDate) AS [Loan Date],
-                CONVERT(date, l.DueDate) AS [Due Date],
-                l.Status
-            FROM Loans l
-            INNER JOIN Members m ON l.MemberID = m.MemberID
-            INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
-            INNER JOIN Books b ON bc.BookID = b.BookID
-            ORDER BY l.LoanDate DESC";
+        SELECT 
+            l.LoanID,  -- keep this hidden later
+            b.Title AS [Book Title],
+            (m.FirstName + ' ' + m.LastName) AS [Member Name],
+            CONVERT(date, l.LoanDate) AS [Loan Date],
+            CONVERT(date, l.DueDate) AS [Due Date],
+            l.Status
+        FROM Loans l
+        INNER JOIN Members m ON l.MemberID = m.MemberID
+        INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+        INNER JOIN Books b ON bc.BookID = b.BookID
+        ORDER BY l.LoanDate DESC";
 
                 using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
                 {
@@ -1494,7 +1495,263 @@ namespace LibraryManagementSystem
         }
 
 
+        public void MarkOverdueLoans()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+            UPDATE Loans
+            SET Status = 'Overdue'
+            WHERE Status = 'On Loan'
+              AND DueDate < GETDATE()";  // Checks if the loan is overdue
 
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
+                    cmd.ExecuteNonQuery();  // Executes the query to update the status
+                }
+            }
+        }
+
+        public DataTable GetActiveLoanDisplayData()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+        SELECT 
+            b.Title AS [Book Title],
+            (m.FirstName + ' ' + m.LastName) AS [Member Name],
+            CONVERT(date, l.LoanDate) AS [Loan Date],
+            CONVERT(date, l.DueDate) AS [Due Date]
+        FROM Loans l
+        INNER JOIN Members m ON l.MemberID = m.MemberID
+        INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+        INNER JOIN Books b ON bc.BookID = b.BookID
+        WHERE l.Status = 'On Loan'
+        ORDER BY l.LoanDate DESC";
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    DataTable loansTable = new DataTable();
+                    adapter.Fill(loansTable);
+                    return loansTable;
+                }
+            }
+        }
+        public DataTable GetReturnedLoanDisplayData()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+        SELECT 
+            b.Title AS [Book Title],
+            (m.FirstName + ' ' + m.LastName) AS [Member Name],
+            CONVERT(date, l.LoanDate) AS [Loan Date],
+            CONVERT(date, l.DueDate) AS [Due Date]
+        FROM Loans l
+        INNER JOIN Members m ON l.MemberID = m.MemberID
+        INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+        INNER JOIN Books b ON bc.BookID = b.BookID
+        WHERE l.Status = 'Returned'
+        ORDER BY l.LoanDate DESC";
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    DataTable returnedLoans = new DataTable();
+                    adapter.Fill(returnedLoans);
+                    return returnedLoans;
+                }
+            }
+        }
+        public DataTable GetOverdueLoanDisplayData()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+        SELECT 
+            b.Title AS [Book Title],
+            (m.FirstName + ' ' + m.LastName) AS [Member Name],
+            CONVERT(date, l.LoanDate) AS [Loan Date],
+            CONVERT(date, l.DueDate) AS [Due Date]
+        FROM Loans l
+        INNER JOIN Members m ON l.MemberID = m.MemberID
+        INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+        INNER JOIN Books b ON bc.BookID = b.BookID
+        WHERE l.Status = 'Overdue'
+        ORDER BY l.LoanDate DESC";
+
+                using (SqlDataAdapter adapter = new SqlDataAdapter(query, conn))
+                {
+                    DataTable overdueLoans = new DataTable();
+                    adapter.Fill(overdueLoans);
+                    return overdueLoans;
+                }
+            }
+        }
+        public void ReturnLoan(int loanId, long userId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                // First, get the CopyID from the loan
+                long copyId = 0;
+                string getCopyQuery = "SELECT CopyID FROM Loans WHERE LoanID = @LoanID";
+
+                using (SqlCommand cmd = new SqlCommand(getCopyQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@LoanID", loanId);
+                    object result = cmd.ExecuteScalar();
+                    if (result != null)
+                        copyId = Convert.ToInt64(result);
+                }
+
+                if (copyId == 0)
+                    return; // Copy not found; skip update
+
+                // Update Loans table
+                string updateLoanQuery = @"
+            UPDATE Loans
+            SET Status = 'Returned',
+                ReturnDate = @Today,
+                ReturnProcessedByUserID = @UserID
+            WHERE LoanID = @LoanID";
+
+                using (SqlCommand cmd = new SqlCommand(updateLoanQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Today", DateTime.Today);
+                    cmd.Parameters.AddWithValue("@UserID", userId);
+                    cmd.Parameters.AddWithValue("@LoanID", loanId);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Update BookCopies table
+                string updateCopyQuery = @"
+            UPDATE BookCopies
+            SET Status = 'Available',
+                IsAvailable = 1
+            WHERE CopyID = @CopyID";
+
+                using (SqlCommand cmd = new SqlCommand(updateCopyQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@CopyID", copyId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public DataTable SearchLoans(string searchTerm)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT 
+                b.Title AS [Book Title],
+                (m.FirstName + ' ' + m.LastName) AS [Member Name],
+                CONVERT(date, l.LoanDate) AS [Loan Date],
+                CONVERT(date, l.DueDate) AS [Due Date],
+                l.Status
+            FROM Loans l
+            INNER JOIN Members m ON l.MemberID = m.MemberID
+            INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+            INNER JOIN Books b ON bc.BookID = b.BookID
+            WHERE b.Title LIKE @SearchTerm
+            OR (m.FirstName + ' ' + m.LastName) LIKE @SearchTerm
+            ORDER BY l.LoanDate DESC";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    // Adding the search term to the query with wildcard for partial matching
+                    cmd.Parameters.AddWithValue("@SearchTerm", "%" + searchTerm + "%");
+
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                    {
+                        DataTable searchResults = new DataTable();
+                        adapter.Fill(searchResults);
+                        return searchResults;
+                    }
+                }
+            }
+        }
+
+        public DataTable SearchLoans(string keyword, string statusFilter)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT 
+                b.Title AS [Book Title],
+                (m.FirstName + ' ' + m.LastName) AS [Member Name],
+                CONVERT(date, l.LoanDate) AS [Loan Date],
+                CONVERT(date, l.DueDate) AS [Due Date]
+            FROM Loans l
+            INNER JOIN Members m ON l.MemberID = m.MemberID
+            INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+            INNER JOIN Books b ON bc.BookID = b.BookID
+            WHERE (b.Title LIKE @keyword OR m.FirstName + ' ' + m.LastName LIKE @keyword)";
+
+                if (statusFilter != "All")
+                {
+                    query += " AND l.Status = @status";
+                }
+
+                query += " ORDER BY l.LoanDate DESC";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@keyword", "%" + keyword + "%");
+                    if (statusFilter != "All")
+                        cmd.Parameters.AddWithValue("@status", statusFilter);
+
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                    {
+                        DataTable table = new DataTable();
+                        adapter.Fill(table);
+                        return table;
+                    }
+                }
+            }
+        }
+        public DataTable GetLoanDisplayDataByStatus(string status)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT 
+                b.Title AS [Book Title],
+                (m.FirstName + ' ' + m.LastName) AS [Member Name],
+                CONVERT(date, l.LoanDate) AS [Loan Date],
+                CONVERT(date, l.DueDate) AS [Due Date]
+            FROM Loans l
+            INNER JOIN Members m ON l.MemberID = m.MemberID
+            INNER JOIN BookCopies bc ON l.CopyID = bc.CopyID
+            INNER JOIN Books b ON bc.BookID = b.BookID
+            WHERE l.Status = @status
+            ORDER BY l.LoanDate DESC";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@status", status);
+
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                    {
+                        DataTable loansTable = new DataTable();
+                        adapter.Fill(loansTable);
+                        return loansTable;
+                    }
+                }
+            }
+        }
 
 
 

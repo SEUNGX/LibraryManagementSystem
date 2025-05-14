@@ -96,7 +96,7 @@ namespace LibraryManagementSystem
                 }
                 else
                 {
-                    currentStatusLabel.Text = "Unavailable";
+                    currentStatusLabel.Text = "Currently Loaned";
                     dueDateLbl.Text = dueDate.HasValue ? dueDate.Value.ToString("yyyy-MM-dd") : "N/A";
                 }
             }

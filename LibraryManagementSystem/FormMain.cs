@@ -64,6 +64,7 @@
         {
             DatabaseHelper db = new DatabaseHelper();
             db.MarkExpiredReservations();
+            db.MarkOverdueLoans();
             fineCheckTimer = new System.Windows.Forms.Timer();
             fineCheckTimer.Interval = 30000; // 30 seconds
             fineCheckTimer.Tick += FineCheckTimer_Tick;
